@@ -7,10 +7,10 @@ Progress:
 - [x] `expand`: Python semantics exact, POSIX mode (backspace, carriage return), `initial`
 - [x] `unexpand`: blank groups per tab stop, lists, POSIX mode
 - [x] Display columns: East Asian Width, combining and ignorable characters
-- [ ] Streaming: `Expander`, `Unexpander`, chunked results equal whole-text results
-- [ ] Command line tool
-- [ ] Contracts: `str.expandtabs` sweep, GNU coreutils oracle, Unicode sweep, README examples
-- [ ] Docs and packaging: README, CHANGELOG, metadata, installed-wheel e2e test
+- [x] Streaming: `Expander`, `Unexpander`, chunked results equal whole-text results
+- [x] Command line tool
+- [x] Contracts: `str.expandtabs` sweep, GNU coreutils oracle, Unicode sweep, README examples
+- [x] Docs and packaging: README, CHANGELOG, metadata, installed-wheel e2e test
 - [ ] Gates: ruff format, ruff check, mypy --strict, pytest
 - [ ] Mutation run: removing guarded logic makes the suite fail
 - [ ] Independent review findings fixed with regression tests
