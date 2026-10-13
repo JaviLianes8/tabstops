@@ -4,7 +4,18 @@ import tabstops
 
 # The public API. Add every exported name here as the library grows; this list is the
 # contract and the test below fails if the module and this list disagree.
-PUBLIC_API: list[str] = ["expand", "unexpand"]
+PUBLIC_API: list[str] = [
+    "UNICODE_VERSION",
+    "Expander",
+    "TabStops",
+    "Unexpander",
+    "char_width",
+    "display_width",
+    "expand",
+    "expand_stream",
+    "unexpand",
+    "unexpand_stream",
+]
 
 
 def test_all_lists_exactly_the_public_api() -> None:
@@ -24,3 +35,7 @@ def test_version_is_a_three_part_string() -> None:
 
 def test_the_package_ships_type_information() -> None:
     assert importlib.resources.files("tabstops").joinpath("py.typed").is_file()
+
+
+def test_unicode_version_names_the_pinned_data() -> None:
+    assert tabstops.UNICODE_VERSION == "18.0.0"

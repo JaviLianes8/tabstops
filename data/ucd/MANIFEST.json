@@ -1,0 +1,38 @@
+{
+  "DerivedEastAsianWidth.txt": {
+    "title": "Unicode Character Database 18.0.0, DerivedEastAsianWidth.txt",
+    "url": "https://www.unicode.org/Public/18.0.0/ucd/extracted/DerivedEastAsianWidth.txt",
+    "revision": "Unicode 18.0.0",
+    "fetched": "2026-10-13",
+    "size": 190225,
+    "sha256": "f4c7bc4537a71e12452f6347ecbbc71c31cba21b5190c92be1ae296b0ef32b09",
+    "licence": "Unicode License v3 (https://www.unicode.org/license.txt), see LICENSE-UNICODE"
+  },
+  "DerivedGeneralCategory.txt": {
+    "title": "Unicode Character Database 18.0.0, DerivedGeneralCategory.txt",
+    "url": "https://www.unicode.org/Public/18.0.0/ucd/extracted/DerivedGeneralCategory.txt",
+    "revision": "Unicode 18.0.0",
+    "fetched": "2026-10-13",
+    "size": 282143,
+    "sha256": "d6b151d2d40ee9b1876d26f417980f45ffae47b6055ccf7203cb31f07a030f94",
+    "licence": "Unicode License v3 (https://www.unicode.org/license.txt), see LICENSE-UNICODE"
+  },
+  "DerivedCoreProperties.txt": {
+    "title": "Unicode Character Database 18.0.0, DerivedCoreProperties.txt",
+    "url": "https://www.unicode.org/Public/18.0.0/ucd/DerivedCoreProperties.txt",
+    "revision": "Unicode 18.0.0",
+    "fetched": "2026-10-13",
+    "size": 1159889,
+    "sha256": "09c928886a178fcafd93c29e4bd59073a058e5a100b716d425cb563ab50f68c9",
+    "licence": "Unicode License v3 (https://www.unicode.org/license.txt), see LICENSE-UNICODE"
+  },
+  "HangulSyllableType.txt": {
+    "title": "Unicode Character Database 18.0.0, HangulSyllableType.txt",
+    "url": "https://www.unicode.org/Public/18.0.0/ucd/HangulSyllableType.txt",
+    "revision": "Unicode 18.0.0",
+    "fetched": "2026-10-13",
+    "size": 51360,
+    "sha256": "0468ce5e735a6e3f0e9d12ec006410e86cedc515c34706704c756808a6cf740e",
+    "licence": "Unicode License v3 (https://www.unicode.org/license.txt), see LICENSE-UNICODE"
+  }
+}

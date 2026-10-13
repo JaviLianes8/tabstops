@@ -1,21 +1,41 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
 name = "tabstops"
-version = "0.1.0"
-description = "Expand and unexpand tabs with a tab-stop-aware column model"
+version = "0.2.0"
+description = "Expand and unexpand tabs like str.expandtabs and the POSIX tools, with tab stop lists and display columns"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "LICENSE-UNICODE"]
 authors = [{ name = "Javier Lianes", email = "javier@lianes8studio.com" }]
-keywords = ["tabs", "tabstops", "expandtabs", "unexpand", "whitespace"]
+keywords = [
+    "tabs",
+    "tabstops",
+    "expandtabs",
+    "expand",
+    "unexpand",
+    "whitespace",
+    "east-asian-width",
+    "wcwidth",
+    "posix",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
+    "Environment :: Console",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Text Processing",
+    "Topic :: Text Processing :: Filters",
     "Typing :: Typed",
 ]
 dependencies = []
@@ -31,8 +51,26 @@ Changelog = "https://github.com/JaviLianes8/tabstops/blob/main/CHANGELOG.md"
 LinkedIn = "https://www.linkedin.com/in/jlianes/"
 Funding = "https://buymeacoffee.com/jlianesglrs"
 
+[project.scripts]
+tabstops = "tabstops._cli:main"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/tabstops"]
+
+[tool.hatch.build.targets.sdist]
+# The Unicode data files are fetched locally and never shipped; only their manifest is.
+include = [
+    "src",
+    "tests",
+    "scripts/gen_width_table.py",
+    "scripts/fetch_upstream.py",
+    "data/ucd/MANIFEST.json",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "README.md",
+    "LICENSE",
+    "LICENSE-UNICODE",
+]
 
 [tool.ruff]
 line-length = 100
@@ -48,4 +86,7 @@ strict = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-addopts = "-q"
+addopts = "-q -m 'not e2e'"
+markers = [
+    "e2e: builds the wheel and installs it into a fresh venv (needs network); run with -m e2e",
+]
