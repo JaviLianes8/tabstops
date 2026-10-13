@@ -2,11 +2,11 @@
 
 Progress:
 - [x] Brainstorm ranked improvements (this file)
-- [ ] Ground truth pinned: Unicode width data in a local folder with a tracked manifest
-- [ ] Tab stop lists (`TabStops`, POSIX lists, `/N` and `+N` extensions)
-- [ ] `expand`: Python semantics exact, POSIX mode (backspace, carriage return), `initial`
-- [ ] `unexpand`: blank groups per tab stop, lists, POSIX mode
-- [ ] Display columns: East Asian Width, combining and ignorable characters
+- [x] Ground truth pinned: Unicode width data in a local folder with a tracked manifest
+- [x] Tab stop lists (`TabStops`, POSIX lists, `/N` and `+N` extensions)
+- [x] `expand`: Python semantics exact, POSIX mode (backspace, carriage return), `initial`
+- [x] `unexpand`: blank groups per tab stop, lists, POSIX mode
+- [x] Display columns: East Asian Width, combining and ignorable characters
 - [ ] Streaming: `Expander`, `Unexpander`, chunked results equal whole-text results
 - [ ] Command line tool
 - [ ] Contracts: `str.expandtabs` sweep, GNU coreutils oracle, Unicode sweep, README examples
