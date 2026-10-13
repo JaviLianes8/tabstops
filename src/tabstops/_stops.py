@@ -116,7 +116,7 @@ def as_tab_stops(tabs: Tabs) -> TabStops:
         return TabStops(tabs)
     if isinstance(tabs, str):
         return TabStops.parse(tabs)
-    if isinstance(tabs, Sequence):
+    if isinstance(tabs, Sequence) and not isinstance(tabs, (bytes, bytearray)):
         if not tabs:
             raise ValueError("empty tab stop list")
         return TabStops(0, tuple(cast(Sequence[int], tabs)))

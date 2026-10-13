@@ -19,7 +19,8 @@ All notable changes to this project are documented here. The format follows
 - Display columns: `width="display"` and `ambiguous_wide`, plus `char_width` and
   `display_width`, from tables generated out of Unicode 18.0.0 (`UNICODE_VERSION`).
 - Streaming: `Expander`, `Unexpander`, `expand_stream` and `unexpand_stream`.
-- The `tabstops expand|unexpand` command, also as `python -m tabstops`.
+- The `tabstops expand|unexpand` command, also as `python -m tabstops`. Repeated `-t`
+  lists are joined; a closed output pipe ends the command quietly.
 
 ### Changed
 

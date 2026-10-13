@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import argparse
 import codecs
+import contextlib
+import os
 import sys
 from collections.abc import Sequence
 from typing import BinaryIO, TypeAlias
@@ -36,13 +38,6 @@ _COMMON: Flags = [
 ]
 
 
-def _tab_stops(spec: str) -> TabStops:
-    try:
-        return TabStops.parse(spec)
-    except ValueError as error:
-        raise argparse.ArgumentTypeError(str(error)) from None
-
-
 def _parser() -> argparse.ArgumentParser:
     from . import __version__
 
@@ -57,9 +52,10 @@ def _parser() -> argparse.ArgumentParser:
         sub.add_argument(
             "-t",
             "--tabs",
-            type=_tab_stops,
+            action="append",
             metavar="LIST",
-            help="tab size, or stops like 4,8,12 with an optional /N or +N tail (default 8)",
+            help="tab size, or stops like 4,8,12 with an optional /N or +N tail (default 8);"
+            " repeated lists are joined",
         )
         for flags, text in _FLAGS[name] + _COMMON:
             sub.add_argument(*flags, action="store_true", help=text)
@@ -71,7 +67,8 @@ def _engine(args: argparse.Namespace) -> Engine:
     if args.ambiguous_wide and not args.display:
         raise ValueError("--ambiguous-wide needs --display")
     width: Width = "display" if args.display else "chars"
-    tabs = args.tabs or TabStops(8)
+    # As with the utilities, -t 4 -t 10 means -t 4,10.
+    tabs = TabStops.parse(",".join(args.tabs)) if args.tabs else TabStops(8)
     posix = not args.python
     if args.command == "expand":
         return Expander(
@@ -92,28 +89,42 @@ def _pump(source: BinaryIO, engine: Engine, out: BinaryIO) -> None:
     out.write(engine.feed(decoder.decode(b"", final=True)).encode("utf-8", "surrogateescape"))
 
 
+def _run(files: list[str], engine: Engine, out: BinaryIO) -> int:
+    status = 0
+    # Files are one stream, as with the utilities: a line may run on into the next file.
+    for name in files or ["-"]:
+        if name == "-":
+            _pump(sys.stdin.buffer, engine, out)
+            continue
+        try:
+            # Opened apart from the read so write errors are not reported as this file.
+            source = open(name, "rb")  # noqa: SIM115
+        except OSError as error:
+            out.flush()
+            print(f"tabstops: {name}: {error.strerror or error}", file=sys.stderr)
+            status = 1
+            continue
+        with source:
+            _pump(source, engine, out)
+    out.write(engine.flush().encode("utf-8", "surrogateescape"))
+    out.flush()
+    return status
+
+
 def main(argv: Sequence[str] | None = None) -> int:
-    """Run the tool; return 0 on success, 1 if a file could not be read, 2 on bad usage."""
+    """Run the tool; return 0 on success, 1 if a file could not be read or the output
+    was closed early, 2 on bad usage."""
     parser = _parser()
     args = parser.parse_args(argv)
     try:
         engine = _engine(args)
     except ValueError as error:
         parser.error(str(error))
-    out = sys.stdout.buffer
-    status = 0
-    # Files are one stream, as with the utilities: a line may run on into the next file.
-    for name in args.files or ["-"]:
-        if name == "-":
-            _pump(sys.stdin.buffer, engine, out)
-            continue
-        try:
-            with open(name, "rb") as source:
-                _pump(source, engine, out)
-        except OSError as error:
-            out.flush()
-            print(f"tabstops: {name}: {error.strerror or error}", file=sys.stderr)
-            status = 1
-    out.write(engine.flush().encode("utf-8", "surrogateescape"))
-    out.flush()
-    return status
+    try:
+        return _run(args.files, engine, sys.stdout.buffer)
+    except BrokenPipeError:
+        # The reader went away (as with `| head`): stop quietly, and point stdout at the
+        # null device so the interpreter does not complain while flushing it at exit.
+        with contextlib.suppress(OSError, ValueError):
+            os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        return 1

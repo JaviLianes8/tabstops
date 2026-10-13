@@ -14,6 +14,8 @@ followed by its length in base 36.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 import sys
 from pathlib import Path
@@ -102,10 +104,27 @@ def render() -> str:
     )
 
 
+def _verify() -> list[str]:
+    """Return the problems with the local files: missing, or not the pinned bytes."""
+    manifest = json.loads((UCD_DIR / "MANIFEST.json").read_text(encoding="utf-8"))
+    problems = []
+    for name, entry in manifest.items():
+        path = UCD_DIR / name
+        if not path.is_file():
+            problems.append(f"{name} is missing")
+        elif hashlib.sha256(path.read_bytes()).hexdigest() != entry["sha256"]:
+            problems.append(f"{name} differs from the sha256 in MANIFEST.json")
+    return problems
+
+
 def main(argv: list[str]) -> int:
-    if not (UCD_DIR / "DerivedEastAsianWidth.txt").is_file():
-        print("data/ucd/ is empty; run python scripts/fetch_upstream.py first")
-        return 0 if "--check" in argv else 1
+    problems = _verify()
+    if problems and "--check" in argv and all(p.endswith("missing") for p in problems):
+        print("SKIPPED: data/ucd/ is not fetched; run python scripts/fetch_upstream.py")
+        return 0
+    if problems:
+        print("\n".join(problems))
+        return 1
     source = render()
     if "--check" in argv:
         if TARGET.read_text(encoding="utf-8") != source:

@@ -106,10 +106,14 @@ tabstops expand [-t LIST] [-i] [--display] [--python] [FILE ...]
 tabstops unexpand [-t LIST] [-a] [--first-only] [--display] [--python] [FILE ...]
 ```
 
-The options follow GNU `expand` and `unexpand` (`-t` implies `-a` for `unexpand`), and
-so do the defaults. `--display` counts display columns and `--python` applies the
-`str.expandtabs` rules. Input is read as UTF-8; bytes that do not decode are passed
-through unchanged. `python -m tabstops` works too.
+The options follow GNU `expand` and `unexpand` (`-t` implies `-a` for `unexpand`, and
+repeated `-t` lists are joined), and so do the defaults. `--display` counts display
+columns and `--python` applies the `str.expandtabs` rules. Input is read as UTF-8; bytes
+that do not decode are passed through unchanged. `python -m tabstops` works too.
+
+Two differences from GNU: columns count characters, while GNU counts bytes, so a line
+with non-ASCII text lines up as it looks rather than as its encoding is long; and the
+obsolete `-8` form of `-t 8` is not accepted.
 
 ## Why
 

@@ -100,7 +100,8 @@ def expand(
     becomes one space. ``initial`` expands only the tabs before the first non-blank
     character of each line. ``width="display"`` counts columns as a terminal shows them
     (see :func:`char_width`). ``posix`` follows the ``expand`` utility instead: only a
-    newline restarts the column and a backspace moves it back one place.
+    newline restarts the column and a backspace moves it back one place (columns still
+    count characters, where the utility counts bytes).
     """
     engine = Expander(
         tabs, initial=initial, width=width, ambiguous_wide=ambiguous_wide, posix=posix
@@ -122,9 +123,16 @@ def expand_stream(
     ambiguous_wide: bool = False,
     posix: bool = False,
 ) -> Iterator[str]:
-    """Expand an iterable of text pieces (lines, file blocks) lazily, one output per piece."""
+    """Expand an iterable of text pieces (lines, file blocks) lazily, one output per piece.
+
+    The arguments are checked when this is called, not when the first piece is read.
+    """
     engine = Expander(
         tabs, initial=initial, width=width, ambiguous_wide=ambiguous_wide, posix=posix
     )
+    return _drive(engine, chunks)
+
+
+def _drive(engine: Expander, chunks: Iterable[str]) -> Iterator[str]:
     for chunk in chunks:
         yield engine.feed(chunk)

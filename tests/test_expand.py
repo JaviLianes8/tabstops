@@ -129,4 +129,4 @@ def test_the_expander_rejects_non_text() -> None:
 
 def test_a_negative_tab_size_names_the_problem() -> None:
     with pytest.raises(ValueError, match="negative"):
-        expand("a	b", -1)
+        expand("a\tb", -1)

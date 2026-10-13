@@ -135,8 +135,15 @@ def unexpand_stream(
     ambiguous_wide: bool = False,
     posix: bool = False,
 ) -> Iterator[str]:
-    """Unexpand an iterable of text pieces lazily; the held-back tail comes last."""
+    """Unexpand an iterable of text pieces lazily; the held-back tail comes last.
+
+    The arguments are checked when this is called, not when the first piece is read.
+    """
     engine = Unexpander(tabs, all=all, width=width, ambiguous_wide=ambiguous_wide, posix=posix)
+    return _drive(engine, chunks)
+
+
+def _drive(engine: Unexpander, chunks: Iterable[str]) -> Iterator[str]:
     for chunk in chunks:
         yield engine.feed(chunk)
     tail = engine.flush()
