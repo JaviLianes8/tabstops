@@ -130,7 +130,7 @@ def test_flush_releases_the_held_blanks_and_starts_a_new_line() -> None:
 # Observed from GNU coreutils 9.7: printf 'abcd \b\b\b   x' | gnuunexpand -t 2,4
 def test_nothing_converts_after_passing_the_last_stop_even_after_backspaces() -> None:
     text = "abcd \b\b\b   x"
-    assert unexpand(text, "2,4", posix=True) == text
+    assert unexpand(text, "2,4", all=True, posix=True) == text
 
 
 @pytest.mark.parametrize("tabs", [True, False])

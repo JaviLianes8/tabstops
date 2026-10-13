@@ -11,8 +11,8 @@ Progress:
 - [x] Command line tool
 - [x] Contracts: `str.expandtabs` sweep, GNU coreutils oracle, Unicode sweep, README examples
 - [x] Docs and packaging: README, CHANGELOG, metadata, installed-wheel e2e test
-- [ ] Gates: ruff format, ruff check, mypy --strict, pytest
-- [ ] Mutation run: removing guarded logic makes the suite fail
+- [x] Gates: ruff format, ruff check, mypy --strict, pytest
+- [x] Mutation run: removing guarded logic makes the suite fail
 - [ ] Independent review findings fixed with regression tests
 - [ ] Pull request opened, guard clean
 
@@ -111,3 +111,14 @@ Considered and left out:
   `ValueError` because they are almost always a bug.
 - Empty and zero tail specs (`""`, `"+0"`, `"4,/0"`), which GNU quietly maps to a
   default, raise `ValueError` here.
+
+## Mutation run
+
+58 hand-written mutants over `_stops.py`, `_expand.py`, `_unexpand.py`, `_width.py` and
+`_cli.py` (dropped guards, swapped branches, off-by-one stops, lost state resets, lost
+output flushes), each applied to a clean tree with bytecode writes off and `__pycache__`
+purged, the suite green before and after. First pass: 50 killed. The eight survivors
+showed redundant guards whose error message was not pinned, the cut-off after the last
+listed stop not being checked once a backspace moves the column back, and the final
+partial UTF-8 character of the input. Tests were added for each; second pass: 58 of 58
+killed.
