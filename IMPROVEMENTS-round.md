@@ -13,7 +13,7 @@ Progress:
 - [x] Docs and packaging: README, CHANGELOG, metadata, installed-wheel e2e test
 - [x] Gates: ruff format, ruff check, mypy --strict, pytest
 - [x] Mutation run: removing guarded logic makes the suite fail
-- [ ] Independent review findings fixed with regression tests
+- [x] Independent review findings fixed with regression tests
 - [ ] Pull request opened, guard clean
 
 ## Starting point
@@ -121,4 +121,26 @@ purged, the suite green before and after. First pass: 50 killed. The eight survi
 showed redundant guards whose error message was not pinned, the cut-off after the last
 listed stop not being checked once a backspace moves the column back, and the final
 partial UTF-8 character of the input. Tests were added for each; second pass: 58 of 58
-killed.
+killed. After the review fixes, five more mutants cover the new guards: 63 of 63 killed.
+
+## Review
+
+An independent review compared the branch with GNU coreutils 9.7 on generated input
+(other control characters, more list forms, files with and without a final newline,
+several files) and found no divergence on ASCII text. Fixed, each with a regression test
+in `tests/test_review_fixes.py`:
+
+- Columns count characters while GNU counts bytes: now stated in the README and the
+  `posix` docstring, and pinned by a test (with the GNU side checked live when present).
+- A repeated `-t` replaced the earlier one; the lists are now joined as GNU does.
+- `bytes` and `bytearray` were taken as stop lists; they now raise `TypeError`.
+- `expand_stream` and `unexpand_stream` only checked their arguments on the first read;
+  they now check them at the call.
+- A closed output pipe ended in a traceback, and a write error could be reported as an
+  input file error; both now end quietly with status 1.
+- `gen_width_table.py` now checks the local files against the sha256 in the manifest and
+  says clearly when the check is skipped because the data is not fetched.
+- The build backend is pinned to `hatchling>=1.27` (needed for `license-files`).
+
+Left as documented differences: the obsolete `-8` option form, and no upper limit on tab
+stop values.
