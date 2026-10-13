@@ -137,3 +137,12 @@ def test_every_form_of_a_list_means_the_same(tabs: object) -> None:
 def test_bad_tabs_arguments_are_rejected(tabs: object, error: type[Exception]) -> None:
     with pytest.raises(error):
         expand("a\tb", tabs)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    ("spec", "message"),
+    [("", "empty"), (" , ", "empty"), ("0", "positive"), ("4,/0", "positive"), ("+0", "positive")],
+)
+def test_parse_errors_say_what_is_wrong(spec: str, message: str) -> None:
+    with pytest.raises(ValueError, match=message):
+        TabStops.parse(spec)

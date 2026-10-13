@@ -105,3 +105,13 @@ def test_version(capsys: pytest.CaptureFixture[str]) -> None:
         main(["--version"])
     out = capsys.readouterr().out
     assert out.strip() == f"tabstops {tabstops.__version__} (Unicode {tabstops.UNICODE_VERSION})"
+
+
+def test_an_incomplete_character_at_the_end_is_kept() -> None:
+    assert run_cli(["expand"], b"a\t\xe4\xb8") == (0, b"a       \xe4\xb8")
+
+
+def test_ambiguous_wide_without_display_is_explained(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit):
+        run_cli(["expand", "--ambiguous-wide"])
+    assert "--ambiguous-wide needs --display" in capsys.readouterr().err

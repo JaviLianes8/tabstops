@@ -125,3 +125,21 @@ def test_flush_releases_the_held_blanks_and_starts_a_new_line() -> None:
     assert engine.feed("abcdefg   ") == "abcdefg"
     assert engine.flush() == "\t  "
     assert engine.feed("        x") == "\tx"
+
+
+# Observed from GNU coreutils 9.7: printf 'abcd \b\b\b   x' | gnuunexpand -t 2,4
+def test_nothing_converts_after_passing_the_last_stop_even_after_backspaces() -> None:
+    text = "abcd \b\b\b   x"
+    assert unexpand(text, "2,4", posix=True) == text
+
+
+@pytest.mark.parametrize("tabs", [True, False])
+def test_a_bool_is_not_a_tab_size(tabs: bool) -> None:
+    with pytest.raises(TypeError):
+        unexpand("    x", tabs)
+
+
+@pytest.mark.parametrize("tabs", [0, -1])
+def test_a_non_positive_tab_size_names_the_problem(tabs: int) -> None:
+    with pytest.raises(ValueError, match=r"^tab size must be positive$"):
+        unexpand("    x", tabs)

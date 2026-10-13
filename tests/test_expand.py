@@ -125,3 +125,8 @@ def test_the_expander_keeps_the_column_across_pieces() -> None:
 def test_the_expander_rejects_non_text() -> None:
     with pytest.raises(TypeError):
         Expander().feed(b"\t")  # type: ignore[arg-type]
+
+
+def test_a_negative_tab_size_names_the_problem() -> None:
+    with pytest.raises(ValueError, match="negative"):
+        expand("a	b", -1)
