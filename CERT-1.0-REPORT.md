@@ -267,6 +267,44 @@ the PyPI 0.2.0 upgrade, GNU comparisons and pinned Unicode checks, with no skips
 `mypy --strict src tests` also passed. TEMP, TMP and pytest basetemps were under
 the round's scratch directory; all execution was local.
 
+## QA lenses, round 3 fixes
+
+Date: 2026-11-01. Reviewed base: `0d37f46ba2e738dcabc60e47eaf0c2340955457e`.
+Fix commit: `d5c6c1c436b1afa445c6458d3669227722df5a5c`
+(`cover large interval expansion option validation`).
+The supplied finding E-05 is addressed; none are disputed. Lens e's round 3 report
+confirms E-04 is fixed. Independent re-verification of E-05 remains pending.
+
+| Finding | Change and contract |
+| --- | --- |
+| E-05, medium | Add `test_large_integer_expansion_rejects_ambiguous_wide_without_display` and `test_large_integer_expansion_rejects_invalid_width`. Both require `ValueError` for empty and nonempty tab-free text with intervals `2**31`, `2**63`, and `2**100`. The former uses `ambiguous_wide=True` with default width; the latter uses `width="cells"`. |
+
+All 12 new cases pass on the reviewed implementation. The two E-04 contracts remain
+in place. This is a coverage correction: production behavior and the public API are
+unchanged, so no behavior change needs a CHANGELOG entry.
+
+The exact N10 mutation was inserted before `expand()` constructs its engine in a
+scratch copy: return tab-free strings unchanged when the integer interval exceeds
+`2**31 - 1`. All 12 new cases fail with `DID NOT RAISE ValueError` (12 failed,
+29 deselected), establishing a behavioral kill without collection errors or timeouts.
+The complete QA contract file passes before mutation and after restoration
+(41 passed each). Restored source matches the repository source byte for byte.
+
+| Lens e mutation | Regression that catches it |
+| --- | --- |
+| N10: bypass option validation for tab-free large-integer expansion | Both new option-validation contracts, all 12 parameter combinations |
+
+Verification on CPython 3.14.6: `ruff format --check .`, `ruff check .`,
+`mypy --strict src`, and `pytest -o addopts= -q --timeout=300` each exited 0.
+The complete suite passed: 385 tests, including installed-wheel installation,
+the PyPI 0.2.0 upgrade, GNU comparisons and pinned Unicode checks, with no skips.
+`mypy --strict src tests` also passed. Every pytest invocation used a 300-second
+per-test timeout. TEMP, TMP, TMPDIR, pip cache and pytest basetemps were under
+the round's scratch directory; all execution was local.
+
+Evidence: `check_n10.py`, `baseline.log`, `N10.log`, and `restored.log` under
+`C:/lianes8-build/codex-pylib/scratch/tabstops-cert/fix-r3/`.
+
 ## Handoff
 
 [PR #3](https://github.com/JaviLianes8/tabstops/pull/3) targets `main` from
