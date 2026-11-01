@@ -179,13 +179,66 @@ including upgrade, CLI failure paths and closed help/version output, passes sepa
 
 ## Review status
 
-No independent reviewer or QA lens has passed the 1.0.0 branch yet. No verdict from
-the earlier 0.2.0 review is carried over. Merge and publication have not been performed.
+Round 1 findings from QA lenses a, c and e are addressed below. Their independent
+re-verification remains pending; no verdict from the earlier 0.2.0 review is carried
+over. Merge and publication have not been performed.
+
+## QA lenses, round 1 fixes
+
+Date: 2026-11-01. Reviewed base: `7a8a4e73b903d30b3e7a1b75d8e726da4d31be65`.
+Fix commit: `13a4ba2b1191b412330a2b441e8a050b77080dc1`
+(`fix large integer tab handling and strengthen qa contracts`).
+All seven supplied findings are addressed; none are disputed.
+
+| Finding | Change and contract |
+| --- | --- |
+| A-01, low | GUIDE and expansion docstring distinguish column-rule compatibility from the C-integer restriction. README wording is consistent. Boundary cases cover `2**31 - 1`, `2**31`, `2**63`, and `10**100`. |
+| C-01, medium | Cache unexpansion boundaries and track local offsets, including after enormous tab jumps. The contract bounds stop calculations across 16,000 blanks split into chunks, with tab, text and backspace prefixes. Large listed-stop tails and resets are covered. |
+| C-02, medium | Restrict the native expansion fast path to integers at most `2**31 - 1`; larger intervals use the engine. Empty and tab-free input now agrees with `TabStops`, `Expander`, and streaming calls. |
+| C-03, low | Reject unsupported constructor containers with a generic `TypeError` before tuple conversion. Contracts also preserve legacy sequence iteration and exceptions raised by caller-written iterators. |
+| E-01, medium | Add an initial-only `Expander` reuse contract after nonblank input and `flush`. Existing reset behavior is retained. |
+| E-02, medium | Assert exact expansion output lists for empty chunks, zero-size tab removal, and mixed chunks. Existing one-output-per-chunk behavior is retained. |
+| E-03, medium | Assert CLI unexpansion of an ambiguous-width character with and without `--ambiguous-wide`, both through a subprocess and the installed wheel. Existing option forwarding is retained. |
+
+Before implementation changes, the new regression file produced 14 failures and
+9 passes: nine oversized-integer expansion cases, four repeated-arithmetic cases,
+and the constructor diagnostic failed. After the fixes and four additional
+compatibility cases, all 27 new contracts pass. CHANGELOG records all three
+implementation behavior changes; the E findings require tests only.
+
+The three surviving mutations from lens e were applied separately in a scratch copy
+and each failed an assertion in the new contract suite. No timeout or collection
+error was counted as a kill:
+
+| Lens e mutation | Regression that catches it |
+| --- | --- |
+| M24: omit initial-only reset on flush | `test_initial_expander_starts_over_after_flush` |
+| M26: omit empty expansion chunks | `test_expand_stream_preserves_empty_results` |
+| M55: omit CLI ambiguous-width forwarding | `test_cli_unexpand_ambiguous_width` |
+
+Three-sample median timings for `unexpand(' ' * n, 10**n)`, with text and integer
+construction outside the timed region, were 0.0242 / 0.0651 / 0.0911 / 0.1861 seconds
+at n = 16,000 / 32,000 / 64,000 / 128,000. Endpoint growth is 7.69x for 8x input,
+compared with the reported 60x. With a leading tab jumping to the huge interval,
+the same sizes took 0.0152 / 0.0310 / 0.0335 / 0.0703 seconds. Every output was
+checked exactly. Timing is supplementary evidence; the shipped work-bound test
+does not depend on wall-clock thresholds.
+
+Verification on CPython 3.14.6: each required gate exited 0 independently:
+`ruff format --check .`, `ruff check .`, `mypy --strict src`, and `pytest`
+(370 passed, 1 opt-in e2e test deselected). Strict typing of both source and tests
+also passed. The installed-wheel build, PyPI 0.2.0 upgrade and CLI checks passed
+separately (1 passed, 370 deselected). GNU and pinned Unicode comparisons ran in
+the full suite. All pytest invocations used a 300-second per-test timeout.
+
+Local evidence is under `C:/lianes8-build/codex-pylib/scratch/tabstops-cert/fix-r1/`:
+`before.log`, `scaling.json`, and `M24.log`, `M26.log`, `M55.log`. Test basetemps,
+build temporary files and the mutation copy also remain under that scratch directory.
 
 ## Handoff
 
 [PR #3](https://github.com/JaviLianes8/tabstops/pull/3) targets `main` from
 `release/1.0.0`, titled `tabstops 1.0.0`. The required guard prints `CLEAN: tabstops #3`.
-The tested implementation is `b7deab4`; subsequent changes only record this handoff.
-Preparation items 1 to 15 and 18 are complete. Independent review, the five QA lenses,
-merge and publication remain pending.
+The preparation implementation was `b7deab4`; round 1 fixes and their tested commit
+are recorded above. Preparation items 1 to 15 and 18 are complete. Independent
+review, QA re-verification, merge and publication remain pending.
