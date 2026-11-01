@@ -118,23 +118,39 @@ def _run(files: list[str], engine: Engine, out: BinaryIO) -> int:
     return status
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    """Run the tool; return 0 on success, 1 if a file could not be read or the output
-    was closed early, 2 on bad usage."""
+def _execute(argv: Sequence[str] | None) -> int:
     parser = _parser()
     args = parser.parse_args(argv)
     try:
         engine = _engine(args)
     except ValueError as error:
         parser.exit(2, f"tabstops: {error}\n")
+    return _run(args.files, engine, sys.stdout.buffer)
+
+
+def _discard_stdout() -> None:
+    # Discard the broken wrapper so shutdown does not retry its buffered output.
+    with contextlib.suppress(OSError, ValueError):
+        sys.stdout.close()
+    sys.stdout = io.StringIO()
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """Run the tool; return 0 on success, 1 on I/O failure, 2 on bad usage."""
     try:
-        return _run(args.files, engine, sys.stdout.buffer)
+        try:
+            return _execute(argv)
+        except SystemExit:
+            # argparse's help/version paths must flush before declaring success.
+            sys.stdout.flush()
+            raise
     except BrokenPipeError:
-        # Discard the broken wrapper so shutdown does not retry its buffered output.
-        with contextlib.suppress(OSError, ValueError):
-            sys.stdout.close()
-        sys.stdout = io.StringIO()
+        _discard_stdout()
         return 1
     except OSError:
+        try:
+            sys.stdout.flush()
+        except OSError:
+            _discard_stdout()
         print("tabstops: input/output operation failed", file=sys.stderr)
         return 1

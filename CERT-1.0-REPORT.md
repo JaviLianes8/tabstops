@@ -10,8 +10,8 @@ Progress:
 - [x] Contract tests, seeded properties and adversarial inputs
 - [x] README badge, GUIDE, dated CHANGELOG, 1.0.0 metadata
 - [x] Built wheel and sdist; real CLI and in-place upgrade from PyPI 0.2.0
-- [ ] Available Python matrix
-- [ ] Mutation round and final four gates
+- [x] Available Python matrix
+- [x] Mutation round and final four gates
 - [ ] Independent reviewer (item 16, separate stage)
 - [ ] Five independent QA lenses (item 19, separate stage)
 - [ ] PR and guard; merge and publishing remain separate stages
@@ -30,7 +30,7 @@ All agree. The changes are documented in CHANGELOG and GUIDE:
   basename and errno; ordinary read/write failures exit 1 without a traceback.
 - The accidental `annotations` attribute is removed.
 - Pending spaces use a counter to avoid repeated copying; closed pipes no longer
-  require opening a device file.
+  require opening a device file. Help/version flush failures now exit 1 instead of 120.
 
 The public docs contain 19 passing doctest examples. README and GUIDE expression
 results execute as tests. `mypy --strict src tests` passes; `py.typed` ships.
@@ -82,10 +82,102 @@ spaces split across calls.
 results and signatures. It runs from an external directory with isolated Python,
 then drives the installed console script and `python -m tabstops`. Both licenses,
 `py.typed` and the width data are in the wheel; tests, source-regeneration scripts,
-docs and the manifest are in the sdist, with no downloaded data or certification notes.
+docs, the manifest and Hatchling's standard `.gitignore` are in the sdist, with no
+downloaded data, bytecode, scratch files or certification notes.
 
-## Pending verification
+## Supported interpreters (item 10)
 
-The available-interpreter matrix, mutation table, final gate results and PR details
-will be recorded here before preparation is complete. Independent review and five QA
-lenses have not run for 1.0.0. No verdict from the earlier 0.2.0 review is carried over.
+`requires-python` remains >=3.10. The actual executable inventory was checked, not
+only launcher registration. CPython 3.14.6 at `C:/Python314/python.exe` is the one
+available installation. The suite runs from the sdist with `src` excluded against
+an installed wheel in a fresh venv: 342 passed, 1 skipped, 1 e2e deselected.
+The regeneration-only test skips without source;
+the external Unicode sweep and GNU oracle still run. The CLI version command passes.
+
+Unavailable: 3.10.19, 3.10.22; 3.11.5, 3.11.14, 3.11.17; 3.12.12, 3.12.15;
+3.13.2, 3.13.16; 3.14.2, 3.14.8, and their free-threaded variants. These 13 launcher
+entries point at deleted directories. Python 3.10 to 3.13 and free-threaded Python
+could not be run in this session; their classifiers retain the existing support promise.
+
+## Author mutation round (item 18)
+
+At `c7e8bd1`, 25 deliberate bugs were applied individually in an isolated tree with
+bytecode writing disabled. Each failed an assertion/expected-exception contract; no
+collection failures or timeouts were counted as kills. After the CLI flush correction,
+M23 to M25 were rechecked and M26 to M28 added on the corrected code. All 28 distinct
+mutations are killed, with no survivor. The normal suite passes after restoration.
+
+| Id | Deliberate bug | Caught by |
+| --- | --- | --- |
+| M01 | strict stop boundary | `tests/test_cert_contract.py::test_public_callable_examples_run` |
+| M02 | relative tail base lost | `tests/test_cert_contract.py::test_tab_stops_copy_pickle_and_replace` |
+| M03 | interval off by one | `tests/test_cert_contract.py::test_public_callable_examples_run` |
+| M04 | Unicode digits accepted | `tests/test_stops.py::test_parse_rejects_bad_lists[\u0664]` |
+| M05 | boolean column accepted | `tests/test_cert_contract.py::test_next_stop_refuses_non_integer_columns[True]` |
+| M06 | negative one column accepted | `tests/test_cert_contract.py::test_next_stop_refuses_negative_columns` |
+| M07 | wrong column exception | `tests/test_cert_contract.py::test_next_stop_refuses_non_integer_columns[True]` |
+| M08 | unsafe parse message | `tests/test_cert_contract.py::test_invalid_values_are_not_echoed` |
+| M09 | carriage return reset removed | `tests/test_cli.py::test_the_tool_follows_posix_unless_asked_for_python` |
+| M10 | initial flag ignored | `tests/test_docs_examples.py::test_documented_results_are_true` |
+| M11 | backspace advances | `tests/test_docs_examples.py::test_documented_results_are_true` |
+| M12 | finite stop padding doubled | `tests/test_docs_examples.py::test_documented_results_are_true` |
+| M13 | stream column lost | `tests/test_cert_contract.py::test_public_callable_examples_run` |
+| M14 | zero interval no longer drops tabs | `tests/test_docs_examples.py::test_documented_results_are_true` |
+| M15 | pending spaces doubled | `tests/test_cert_contract.py::test_public_callable_examples_run` |
+| M16 | held space never compressed | `tests/test_cli.py::test_held_blanks_are_written_at_the_end` |
+| M17 | all flag ignored | `tests/test_cli.py::test_unexpand_tab_list_implies_all` |
+| M18 | unexpand flush loses pending spaces | `tests/test_cert_contract.py::test_public_callable_examples_run` |
+| M19 | unexpand flush loses reset | `tests/test_properties.py::test_engines_start_over_after_flush` |
+| M20 | ambiguous wide ignored | `tests/test_cli.py::test_display_columns` |
+| M21 | width lookup boundary shifted | `tests/test_cert_contract.py::test_public_callable_examples_run` |
+| M22 | unsafe width message | `tests/test_cert_contract.py::test_invalid_values_are_not_echoed` |
+| M23 | CLI tabs no longer imply all | `tests/test_cli.py::test_unexpand_tab_list_implies_all` |
+| M24 | CLI incomplete UTF-8 tail lost | `tests/test_cli.py::test_an_incomplete_character_at_the_end_is_kept` |
+| M25 | CLI read errors report success | `tests/test_cli_errors.py::test_read_failure_has_status_one_and_safe_message` |
+| M26 | help/version flush removed | `tests/test_cli_errors.py::test_help_and_version_flush_failures_exit_one[argv0]` |
+| M27 | failed output wrapper retained | `tests/test_cli_errors.py::test_failed_stdout_flush_is_not_retried_at_shutdown` |
+| M28 | ordinary flush failure not silenced | `tests/test_cli_errors.py::test_failed_stdout_flush_is_not_retried_at_shutdown` |
+
+## Scaling and final gates
+
+On this PC, 100,000 / 400,000 / 1,600,000 pending blanks took approximately
+0.14 / 0.39 / 1.43 seconds. Parsing 10,000 / 40,000 / 160,000 listed stops took
+0.03 / 0.07 / 0.40 seconds. These measurements support linear scaling for the
+adversarial shapes; output expansion itself is necessarily proportional to output size.
+
+Each gate was invoked separately and exited 0: `ruff format --check .`, `ruff check .`,
+`mypy --strict src`, `pytest` (343 passed, the opt-in wheel test deselected).
+`mypy --strict src tests` also exits 0. Every pytest invocation uses a 300-second
+per-test timeout and an explicit scratch basetemp. The installed-wheel e2e test,
+including upgrade, CLI failure paths and closed help/version output, passes separately
+(1 passed, 343 deselected).
+`twine check --strict` passes both built artifacts.
+
+## Scorecard
+
+| Item | Preparation result |
+| --- | --- |
+| 1 | PASS: retained signatures/defaults; documented boundary changes |
+| 2 | PASS: exact ten-name surface, accidental export removed |
+| 3 | PASS: 19 doctest examples and executable README/GUIDE results |
+| 4 | PASS: strict source/test typing; shipped py.typed |
+| 5 | PASS: documented TypeError/ValueError and bounded diagnostics |
+| 6 | PASS: 343 tests plus real installed-wheel end-to-end test |
+| 7 | PASS: fetched Unicode and spec text, live CPython and GNU programs |
+| 8 | PASS: built-wheel external consumer, CLI, PyPI 0.2.0 upgrade |
+| 9 | PASS: deterministic fuzz/properties and large-input scaling |
+| 10 | PASS for available interpreter; unavailable versions listed above |
+| 11 | PASS: README badge, comparisons, absolute links, strict twine check |
+| 12 | PASS: 1.0.0 CHANGELOG dated 2026-11-01 |
+| 13 | PASS: version, stable classifier, license, URLs, no runtime dependencies |
+| 14 | PASS: inspected wheel/sdist, licenses included, no downloaded corpora |
+| 15 | PASS: all four gates exit 0 separately |
+| 16 | PENDING: independent reviewer is a separate stage |
+| 17 | PENDING: PR and guard below; merge and publishing are separate stages |
+| 18 | PASS: 28 distinct mutations killed |
+| 19 | PENDING: all five independent QA lenses are a separate stage |
+
+## Review status
+
+No independent reviewer or QA lens has passed the 1.0.0 branch yet. No verdict from
+the earlier 0.2.0 review is carried over. Merge and publication have not been performed.

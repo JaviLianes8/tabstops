@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import importlib.resources
 
 import tabstops
@@ -28,6 +30,7 @@ def test_every_exported_name_resolves() -> None:
 
 
 def test_version_is_a_three_part_string() -> None:
+    assert tabstops.__version__ == "1.0.0"
     parts = tabstops.__version__.split(".")
     assert len(parts) == 3
     assert all(part.isdigit() for part in parts)

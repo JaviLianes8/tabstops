@@ -87,6 +87,22 @@ def test_wheel_installs_and_the_script_works(tmp_path: Path) -> None:
     probe = "import tabstops; print(tabstops.expand('a\tb', '3,5'), tabstops.__file__)"
     shown = _run([str(python), "-I", "-c", probe], cwd=tmp_path).stdout.decode()
     assert shown.startswith("a  b ") and str(env_dir) in shown
+    for args in (["expand"], ["--help"], ["--version"]):
+        process = subprocess.Popen(
+            [str(python), "-I", "-m", "tabstops", *args],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=tmp_path,
+        )
+        assert process.stdout is not None
+        process.stdout.close()
+        process.stdout = None
+        _, errors = process.communicate(
+            b"\tx\n" * 100_000 if args == ["expand"] else b"", timeout=30
+        )
+        assert process.returncode == 1
+        assert b"Traceback" not in errors and b"Exception ignored" not in errors
 
 
 CONSUMER = """import inspect, json, random

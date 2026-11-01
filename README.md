@@ -54,7 +54,8 @@ A tab past the last listed stop becomes a single space; blanks past it are left 
 
 ### Display columns
 
-Columns count code points by default. `width="display"` counts them using a per-code-point width model: East Asian Wide and Fullwidth characters take two columns, combining marks and
+Columns count code points by default. `width="display"` uses a per-code-point model:
+East Asian Wide and Fullwidth characters take two columns, combining marks and
 invisible characters take none. The data comes from Unicode 18.0.0 and does not depend
 on the Python version.
 
@@ -112,7 +113,8 @@ repeated `-t` lists are joined), and so do the defaults. `--display` counts disp
 columns and `--python` applies the `str.expandtabs` rules. Input is read as UTF-8; bytes
 that do not decode are passed through unchanged. `python -m tabstops` works too.
 
-Two differences from GNU: columns count characters, while GNU counts bytes, so non-ASCII text is measured by code points (or display widths with --display); and the
+Two differences from GNU: columns count characters, while GNU counts bytes, so
+non-ASCII text is measured by code points (or display widths with `--display`); and the
 obsolete `-8` form of `-t 8` is not accepted.
 
 ## Why
@@ -128,7 +130,8 @@ complete API, errors, streaming, width limitations and resource use. See the
 
 ## License
 
-MIT. See [LICENSE](https://github.com/JaviLianes8/tabstops/blob/main/LICENSE). The width table derives from the Unicode Character
+MIT. See [LICENSE](https://github.com/JaviLianes8/tabstops/blob/main/LICENSE).
+The width table derives from the Unicode Character
 Database; see [LICENSE-UNICODE](https://github.com/JaviLianes8/tabstops/blob/main/LICENSE-UNICODE).
 
 ## Links

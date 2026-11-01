@@ -11,6 +11,7 @@ import pytest
 from tabstops._cli import main
 
 from .test_cli import run_cli
+from .test_review_fixes import _ClosedPipe
 
 
 def test_unknown_arguments_do_not_echo_values(capsys: pytest.CaptureFixture[str]) -> None:
@@ -47,7 +48,9 @@ def test_read_failure_has_status_one_and_safe_message(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(_Unreadable()))
+    original_stdout = sys.stdout
     assert main(["expand"]) == 1
+    assert sys.stdout is original_stdout and not sys.stdout.closed
     assert capsys.readouterr().err == "tabstops: input/output operation failed\n"
 
 
@@ -62,4 +65,30 @@ def test_write_failure_has_status_one_and_safe_message(
     monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(b"x")))
     monkeypatch.setattr(sys, "stdout", io.TextIOWrapper(_Unwritable()))
     assert main(["expand"]) == 1
+    assert capsys.readouterr().err == "tabstops: input/output operation failed\n"
+
+
+@pytest.mark.parametrize("argv", [["--help"], ["--version"], ["expand", "--help"]])
+def test_help_and_version_flush_failures_exit_one(
+    argv: list[str], monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    pipe = _ClosedPipe.stdout(monkeypatch)
+    assert main(argv) == 1
+    pipe.broken = False
+    assert capsys.readouterr().err == ""
+
+
+class _BadFlush(io.TextIOWrapper):
+    def flush(self) -> None:
+        raise OSError("private-token")
+
+
+def test_failed_stdout_flush_is_not_retried_at_shutdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    output = _BadFlush(io.BytesIO())
+    monkeypatch.setattr(sys, "stdout", output)
+    assert main(["--version"]) == 1
+    assert sys.stdout is not output
+    assert isinstance(sys.stdout, io.StringIO) and sys.stdout.getvalue() == ""
     assert capsys.readouterr().err == "tabstops: input/output operation failed\n"

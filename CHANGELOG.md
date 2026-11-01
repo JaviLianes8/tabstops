@@ -27,7 +27,8 @@ All notable changes to this project are documented here. The format follows
 - Remove the accidental top-level `annotations` attribute (never in `__all__`).
 - Pending spaces in `Unexpander` are counted rather than repeatedly concatenated,
   avoiding quadratic work for distant stops. Valid conversion outputs are unchanged.
-- Closed output pipes are silenced without opening a device file.
+- Closed output pipes are handled without opening a device file. Help/version output
+  now flushes before exiting, returning 1 on output failure instead of exit 120.
 
 
 ## [0.2.0]
