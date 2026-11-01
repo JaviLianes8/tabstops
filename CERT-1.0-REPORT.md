@@ -14,7 +14,7 @@ Progress:
 - [x] Mutation round and final four gates
 - [ ] Independent reviewer (item 16, separate stage)
 - [ ] Five independent QA lenses (item 19, separate stage)
-- [ ] PR and guard; merge and publishing remain separate stages
+- [x] PR #3 opened; guard CLEAN; merge and publishing remain separate stages
 
 ## API and compatibility
 
@@ -173,7 +173,7 @@ including upgrade, CLI failure paths and closed help/version output, passes sepa
 | 14 | PASS: inspected wheel/sdist, licenses included, no downloaded corpora |
 | 15 | PASS: all four gates exit 0 separately |
 | 16 | PENDING: independent reviewer is a separate stage |
-| 17 | PENDING: PR and guard below; merge and publishing are separate stages |
+| 17 | READY: PR #3 and guard CLEAN; merge and publication pending |
 | 18 | PASS: 28 distinct mutations killed |
 | 19 | PENDING: all five independent QA lenses are a separate stage |
 
@@ -181,3 +181,11 @@ including upgrade, CLI failure paths and closed help/version output, passes sepa
 
 No independent reviewer or QA lens has passed the 1.0.0 branch yet. No verdict from
 the earlier 0.2.0 review is carried over. Merge and publication have not been performed.
+
+## Handoff
+
+[PR #3](https://github.com/JaviLianes8/tabstops/pull/3) targets `main` from
+`release/1.0.0`, titled `tabstops 1.0.0`. The required guard prints `CLEAN: tabstops #3`.
+The tested implementation is `b7deab4`; subsequent changes only record this handoff.
+Preparation items 1 to 15 and 18 are complete. Independent review, the five QA lenses,
+merge and publication remain pending.
