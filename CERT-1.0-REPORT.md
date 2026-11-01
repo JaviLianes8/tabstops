@@ -238,8 +238,9 @@ build temporary files and the mutation copy also remain under that scratch direc
 ## QA lenses, round 2 fixes
 
 Date: 2026-11-01. Reviewed base: `d624f5277e178e8fad857cc592abcfd80b480b3c`.
-Fix commit: `cover huge interval expansion failure contracts` (the commit containing
-this section). The supplied finding E-04 is addressed; none are disputed.
+Fix commit: `2e5b00698bee375357e4fdb217fc1af67b688350`
+(`cover huge interval expansion failure contracts`).
+The supplied finding E-04 is addressed; none are disputed.
 
 | Finding | Change and contract |
 | --- | --- |
