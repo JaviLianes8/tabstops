@@ -23,6 +23,17 @@ def test_large_integer_expansion_without_tabs(tabs: int, text: str) -> None:
     assert list(expand_stream([text], tabs)) == [text]
 
 
+def test_large_integer_expansion_rejects_impossible_output_size() -> None:
+    # Exceed Py_ssize_t so expansion fails before attempting a huge allocation.
+    with pytest.raises((OverflowError, MemoryError)):
+        expand("\t", 2**100)
+
+
+def test_large_integer_expansion_rejects_non_text() -> None:
+    with pytest.raises(TypeError):
+        expand(None, 2**100)  # type: ignore[arg-type]
+
+
 @pytest.mark.parametrize("prefix", ["", "\t", "\tx", "\t\b"])
 def test_large_interval_blank_work_is_bounded(monkeypatch: pytest.MonkeyPatch, prefix: str) -> None:
     calls = 0

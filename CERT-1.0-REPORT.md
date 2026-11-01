@@ -235,6 +235,37 @@ Local evidence is under `C:/lianes8-build/codex-pylib/scratch/tabstops-cert/fix-
 `before.log`, `scaling.json`, and `M24.log`, `M26.log`, `M55.log`. Test basetemps,
 build temporary files and the mutation copy also remain under that scratch directory.
 
+## QA lenses, round 2 fixes
+
+Date: 2026-11-01. Reviewed base: `d624f5277e178e8fad857cc592abcfd80b480b3c`.
+Fix commit: `cover huge interval expansion failure contracts` (the commit containing
+this section). The supplied finding E-04 is addressed; none are disputed.
+
+| Finding | Change and contract |
+| --- | --- |
+| E-04, medium | Add `test_large_integer_expansion_rejects_impossible_output_size` and `test_large_integer_expansion_rejects_non_text`. They require `OverflowError` or `MemoryError` for `expand('\t', 2**100)` and `TypeError` for `expand(None, 2**100)`. |
+
+Both contracts pass on the reviewed production code. This finding concerns missing
+coverage, so production behavior and the API are unchanged; no behavior change needs
+a CHANGELOG entry. The size exceeds `Py_ssize_t` to fail before a huge allocation.
+
+N03 was applied in a scratch copy immediately before the engine fallback: return the
+input unchanged when `tabs` is an integer greater than `2**31 - 1`. Both new contracts
+fail with `DID NOT RAISE` (2 failed, 27 deselected). This is a behavioral kill, not an
+import failure or timeout. The scratch source was restored and compared byte for
+byte with the repository source. Evidence: `fix-r2/N03.log` and `fix-r2/check_n03.py`
+under `C:/lianes8-build/codex-pylib/scratch/tabstops-cert/`.
+
+Independent re-verification of E-04 remains pending. Lens e's round 2 report confirms
+that E-01, E-02 and E-03 are fixed.
+
+Verification on CPython 3.14.6: `ruff format --check .`, `ruff check .`,
+`mypy --strict src`, and `pytest -o addopts= -q --timeout=300` each exited 0.
+The complete suite passed: 373 tests, including installed-wheel installation,
+the PyPI 0.2.0 upgrade, GNU comparisons and pinned Unicode checks, with no skips.
+`mypy --strict src tests` also passed. TEMP, TMP and pytest basetemps were under
+the round's scratch directory; all execution was local.
+
 ## Handoff
 
 [PR #3](https://github.com/JaviLianes8/tabstops/pull/3) targets `main` from
