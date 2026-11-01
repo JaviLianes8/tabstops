@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
 
+from ._cursor import StopCursor
 from ._stops import Tabs, as_tab_stops
 from ._width import Width, width_function
 
@@ -39,7 +40,7 @@ class Unexpander:
         self._start_line()
 
     def _start_line(self) -> None:
-        self._column = 0
+        self._cursor = StopCursor(self._stops)
         self._converting = True
         # A line start counts as a blank, so a lone leading space can become a tab.
         self._after_blank = True
@@ -58,22 +59,22 @@ class Unexpander:
         return out
 
     def _blank(self, char: str, out: list[str]) -> None:
-        stop = self._stops.next_stop(self._column)
+        stop = self._cursor.boundary()
         if stop is None:
             # Past the last listed stop nothing more is converted on this line.
             out.append(self._release() + char)
             self._converting = False
             return
-        if char == "\t" or (self._column + 1 == stop and self._after_blank):
-            self._column = stop
+        if char == "\t" or (self._cursor.offset + 1 == stop and self._after_blank):
+            self._cursor.reach(stop)
             out.append("\t\t" if self._held else "\t")
             self._held = False
             self._group = 0
-        elif self._column + 1 == stop:
-            self._column = stop
+        elif self._cursor.offset + 1 == stop:
+            self._cursor.reach(stop)
             self._held = True
         else:
-            self._column += 1
+            self._cursor.offset += 1
             self._group += 1
         self._after_blank = True
 
@@ -97,9 +98,9 @@ class Unexpander:
             else:
                 out.append(self._release() + char)
                 if char == "\b" and self._posix:
-                    self._column = max(self._column - 1, 0)
+                    self._cursor.backspace()
                 else:
-                    self._column += self._width(char)
+                    self._cursor.offset += self._width(char)
                 self._after_blank = False
                 self._converting = self._all
         return "".join(out)

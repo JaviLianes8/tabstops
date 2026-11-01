@@ -17,6 +17,13 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- Direct integer expansion accepts intervals beyond the C-integer range of
+  `str.expandtabs`, matching streaming and `TabStops` calls. Empty or tab-free text
+  no longer raises `OverflowError` merely because the interval is large.
+- `Unexpander` caches stop boundaries and advances local offsets, avoiding repeated
+  arbitrary-precision arithmetic for each blank, including after large tab jumps.
+- Unsupported `TabStops(stops=...)` containers raise a generic `TypeError` without
+  echoing dynamic type names; exceptions from caller-written iterators still propagate.
 - `TabStops.next_stop` requires a nonnegative integer column: boolean/non-integer
   arguments raise `TypeError`, negative arguments raise `ValueError`.
 - Validation errors no longer echo invalid values or dynamic type names. Overlong

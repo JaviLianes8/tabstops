@@ -16,7 +16,7 @@ pip install tabstops
 ```python
 from tabstops import expand, unexpand
 
-# Tabs to spaces. With a nonnegative int this matches str.expandtabs.
+# Tabs to spaces, following str.expandtabs column rules.
 expand("name\tvalue")  # -> 'name    value'
 expand("a\tb", 4)  # -> 'a   b'
 expand("01\t012\n0123\t01234", 4)  # -> '01  012\n0123    01234'

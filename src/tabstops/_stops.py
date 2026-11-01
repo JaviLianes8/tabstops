@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from bisect import bisect_right
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import TypeAlias, cast
 
@@ -33,6 +33,8 @@ class TabStops:
     relative: bool = False
 
     def __post_init__(self) -> None:
+        if not isinstance(self.stops, Iterable) and not hasattr(type(self.stops), "__getitem__"):
+            raise TypeError("stops must be an iterable of ints")
         object.__setattr__(self, "stops", tuple(self.stops))
         for value in (self.every, *self.stops):
             if not isinstance(value, int) or isinstance(value, bool):

@@ -71,6 +71,9 @@ def test_wheel_installs_and_the_script_works(tmp_path: Path) -> None:
     assert (done.returncode, done.stdout) == (0, b"        x\r\n")
     done = _run([str(script), "unexpand", "-t", "4"], b"    x    y\n")
     assert (done.returncode, done.stdout) == (0, b"\tx\t y\n")
+    for flags, expected in [([], "\u00b1  x"), (["--ambiguous-wide"], "\u00b1\tx")]:
+        done = _run([str(script), "unexpand", "-t", "4", "--display", *flags], "\u00b1  x".encode())
+        assert (done.returncode, done.stdout) == (0, expected.encode())
     done = _run([str(script), "expand", "--display", "-t", "4"], "\u4e2d\tx\n".encode())
     assert done.stdout == "\u4e2d  x\n".encode()
     done = _run([str(python), "-m", "tabstops", "expand", "--python"], b"ab\r\t\xffc")

@@ -28,7 +28,9 @@ for an interval. Listed stops must be positive and strictly increasing. `/N` rep
 at multiples of N after the list; `+N` repeats relative to its last stop. Repeated or
 edge separators are ignored; `/8` and `+8` alone mean interval 8. A list without a
 tail has at least two stops. An integer zero is accepted only by expansion and drops
-tabs. Negative sizes are rejected, unlike `str.expandtabs`.
+tabs. Negative sizes are rejected, unlike `str.expandtabs`. Nonnegative integer sizes
+follow its column rules but also accept values beyond its C-integer range. Empty or
+tab-free input works with these large intervals in both one-shot and streaming calls.
 
 ```python
 from tabstops import TabStops, expand, unexpand
@@ -80,7 +82,10 @@ engine.flush()  # -> '  '
 engine.flush()  # -> ''
 ```
 
-Processing is linear in input plus output size, with logarithmic stop lookup for lists.
+For fixed-size column integers, processing is linear in input plus output size, with
+logarithmic stop lookup for lists. Arbitrary-precision arithmetic also depends on the
+integers' bit lengths. Unexpansion caches boundaries and counts local offsets, avoiding
+large-integer arithmetic for each blank within an interval, even after a tab jump.
 Pending spaces are counted, not repeatedly copied. Tab sizes and output lengths have
 no library-imposed cap: a huge tab size can request huge output and cause MemoryError
 or OverflowError from Python. Bound tab sizes and input at your application's boundary
@@ -106,12 +111,17 @@ unknown arguments. Ordinary read/write errors produce a short diagnostic.
 
 ## Upgrading from 0.2.0
 
-Valid conversion results and defaults are unchanged. `next_stop` now rejects negative,
-boolean and non-integer columns. Error wording is shorter and does not echo invalid
+Valid conversion results and defaults are unchanged. Direct integer expansion now
+accepts intervals beyond the C-integer range, matching `TabStops` and streaming calls;
+empty or tab-free input no longer raises `OverflowError` solely due to interval size.
+`next_stop` now rejects negative, boolean and non-integer columns. Error wording is
+shorter and does not echo invalid
 values or dynamic type names. CLI file errors show a bounded basename and errno;
 unknown-argument errors use generic wording, and read/write failures exit 1. The
 accidental top-level `annotations` name is removed. Long pending blank runs use a
-counter, avoiding repeated string copies. See the
+counter and cached stop boundaries, avoiding repeated string copies and per-blank
+large-integer arithmetic. Unsupported constructor containers receive a generic
+`TypeError` without exposing their type names. See the
 [CHANGELOG](https://github.com/JaviLianes8/tabstops/blob/main/CHANGELOG.md).
 
 ## Verification

@@ -105,7 +105,7 @@ def expand(
 ) -> str:
     """Replace each tab with the spaces that reach the next tab stop.
 
-    With the defaults this is exactly ``text.expandtabs(tabs)``: the column restarts after
+    With the defaults this follows ``text.expandtabs(tabs)``: the column restarts after
     a newline or a carriage return and every other character advances one column; a tab
     size of zero drops tabs. ``tabs`` also takes a list of stops (``"4,10"``,
     ``[4, 10]``, ``"2,4,/8"`` or a :class:`TabStops`); a tab past the last listed stop
@@ -115,6 +115,7 @@ def expand(
     newline restarts the column and a backspace moves it back one place (columns still
     count characters, where the utility counts bytes).
 
+    Integer sizes also support values beyond the C-int range of ``str.expandtabs``.
     Negative sizes raise ValueError; wrong text or tab types raise TypeError.
 
     >>> expand("a" + chr(9) + "b", 4)
@@ -123,7 +124,7 @@ def expand(
     engine = Expander(
         tabs, initial=initial, width=width, ambiguous_wide=ambiguous_wide, posix=posix
     )
-    if isinstance(tabs, int) and not (initial or posix) and width == "chars":
+    if isinstance(tabs, int) and tabs <= 2**31 - 1 and not (initial or posix) and width == "chars":
         if not isinstance(text, str):
             raise TypeError("expected a str")
         # Same rules as the engine, done in C.
