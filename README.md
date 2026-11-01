@@ -1,5 +1,7 @@
 # tabstops
 
+[![Lianes8 Certified](https://lianes8studio.com/certified/lianes8-certified-badge.svg)](https://lianes8studio.com/certified)
+
 Expand and unexpand tabs like `str.expandtabs` and the POSIX `expand` and `unexpand`
 tools, with tab stop lists, terminal display columns and streaming.
 
@@ -14,7 +16,7 @@ pip install tabstops
 ```python
 from tabstops import expand, unexpand
 
-# Tabs to spaces. With an int this is exactly str.expandtabs.
+# Tabs to spaces. With a nonnegative int this matches str.expandtabs.
 expand("name\tvalue")  # -> 'name    value'
 expand("a\tb", 4)  # -> 'a   b'
 expand("01\t012\n0123\t01234", 4)  # -> '01  012\n0123    01234'
@@ -52,8 +54,7 @@ A tab past the last listed stop becomes a single space; blanks past it are left 
 
 ### Display columns
 
-Columns count code points by default. `width="display"` counts them as a terminal draws
-them: East Asian Wide and Fullwidth characters take two columns, combining marks and
+Columns count code points by default. `width="display"` counts them using a per-code-point width model: East Asian Wide and Fullwidth characters take two columns, combining marks and
 invisible characters take none. The data comes from Unicode 18.0.0 and does not depend
 on the Python version.
 
@@ -111,8 +112,7 @@ repeated `-t` lists are joined), and so do the defaults. `--display` counts disp
 columns and `--python` applies the `str.expandtabs` rules. Input is read as UTF-8; bytes
 that do not decode are passed through unchanged. `python -m tabstops` works too.
 
-Two differences from GNU: columns count characters, while GNU counts bytes, so a line
-with non-ASCII text lines up as it looks rather than as its encoding is long; and the
+Two differences from GNU: columns count characters, while GNU counts bytes, so non-ASCII text is measured by code points (or display widths with --display); and the
 obsolete `-8` form of `-t 8` is not accepted.
 
 ## Why
@@ -122,10 +122,14 @@ and counts a wide CJK character or a combining accent as one column. `tabstops` 
 both directions with one stop model, checked against `str.expandtabs` and against GNU
 coreutils, and measures columns with current Unicode data.
 
+The [GUIDE](https://github.com/JaviLianes8/tabstops/blob/main/GUIDE.md) documents the
+complete API, errors, streaming, width limitations and resource use. See the
+[CHANGELOG](https://github.com/JaviLianes8/tabstops/blob/main/CHANGELOG.md) for upgrades.
+
 ## License
 
-MIT. See [LICENSE](LICENSE). The width table derives from the Unicode Character
-Database; see [LICENSE-UNICODE](LICENSE-UNICODE).
+MIT. See [LICENSE](https://github.com/JaviLianes8/tabstops/blob/main/LICENSE). The width table derives from the Unicode Character
+Database; see [LICENSE-UNICODE](https://github.com/JaviLianes8/tabstops/blob/main/LICENSE-UNICODE).
 
 ## Links
 

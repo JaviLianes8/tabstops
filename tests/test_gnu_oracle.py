@@ -10,6 +10,7 @@ from tabstops import expand, unexpand
 
 from .conftest import gnu, run_gnu
 from .test_cli import run_cli
+from .test_unexpand import OBSERVED
 
 SPECS = ["8", "1", "3", "4,8,12", "2,4,/8", "1,+8", "3,7,20", "5 6"]
 EXPAND_FLAGS: list[list[str]] = [[], ["-i"]]
@@ -49,3 +50,9 @@ def test_text_without_a_final_newline_matches_gnu() -> None:
     for text in ["        ", "a       ", "abcdefg ", "  \t", "x\b        "]:
         wanted = run_gnu("unexpand", ["-a"], text.encode()).decode()
         assert unexpand(text, all=True, posix=True) == wanted, repr(text)
+
+
+@pytest.mark.skipif(gnu("unexpand") is None, reason="GNU unexpand not installed")
+@pytest.mark.parametrize(("args", "text", "expected"), OBSERVED)
+def test_recorded_outputs_match_the_live_program(args: list[str], text: str, expected: str) -> None:
+    assert run_gnu("unexpand", args, text.encode()) == expected.encode()

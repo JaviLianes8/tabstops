@@ -16,6 +16,10 @@ class Unexpander:
     Arguments are those of :func:`unexpand`. Blanks that may still become a tab are held
     back until the next character decides them, so ``feed`` can return less than it got;
     ``flush`` ends the text, returns what was held back and starts over at column zero.
+
+    >>> engine = Unexpander(4)
+    >>> engine.feed("  ") + engine.flush()
+    '  '
     """
 
     def __init__(
@@ -39,18 +43,18 @@ class Unexpander:
         self._converting = True
         # A line start counts as a blank, so a lone leading space can become a tab.
         self._after_blank = True
-        self._group = ""
+        self._group = 0
         # A single space after a non-blank that ended on a stop: it becomes a tab only
         # if another blank follows, since alone it gains nothing.
         self._held = False
 
     def _release(self) -> str:
         """Return the blanks held back, as the text that follows them decides."""
-        out = self._group
+        out = " " * self._group
         if self._held:
             out = "\t" + out if out else " "
         self._held = False
-        self._group = ""
+        self._group = 0
         return out
 
     def _blank(self, char: str, out: list[str]) -> None:
@@ -64,19 +68,23 @@ class Unexpander:
             self._column = stop
             out.append("\t\t" if self._held else "\t")
             self._held = False
-            self._group = ""
+            self._group = 0
         elif self._column + 1 == stop:
             self._column = stop
             self._held = True
         else:
             self._column += 1
-            self._group += char
+            self._group += 1
         self._after_blank = True
 
     def feed(self, text: str) -> str:
-        """Convert the next piece of text and return what is decided so far."""
+        """Convert a text piece; wrong types raise TypeError.
+
+        >>> Unexpander(4).feed("  ")
+        ''
+        """
         if not isinstance(text, str):
-            raise TypeError(f"expected a str, got {type(text).__name__}")
+            raise TypeError("expected a str")
         out: list[str] = []
         for char in text:
             if char in self._resets:
@@ -97,7 +105,12 @@ class Unexpander:
         return "".join(out)
 
     def flush(self) -> str:
-        """End the text and return the blanks still held back."""
+        """Return pending blanks and reset the column and conversion state.
+
+        >>> engine = Unexpander(4)
+        >>> engine.feed("  "), engine.flush(), engine.flush()
+        ('', '  ', '')
+        """
         tail = self._release()
         self._start_line()
         return tail
@@ -121,6 +134,11 @@ def unexpand(
     :func:`expand`; blanks past the last listed stop are left alone. ``width`` and
     ``posix`` count columns as in :func:`expand`, and ``expand(unexpand(t)) == expand(t)``
     holds for the same arguments.
+
+    Zero/negative sizes raise ValueError; wrong text or tab types raise TypeError.
+
+    >>> unexpand("    x", 4) == chr(9) + "x"
+    True
     """
     engine = Unexpander(tabs, all=all, width=width, ambiguous_wide=ambiguous_wide, posix=posix)
     return engine.feed(text) + engine.flush()
@@ -138,6 +156,9 @@ def unexpand_stream(
     """Unexpand an iterable of text pieces lazily; the held-back tail comes last.
 
     The arguments are checked when this is called, not when the first piece is read.
+
+    >>> list(unexpand_stream([" ", " "], 4))
+    ['', '', '  ']
     """
     engine = Unexpander(tabs, all=all, width=width, ambiguous_wide=ambiguous_wide, posix=posix)
     return _drive(engine, chunks)

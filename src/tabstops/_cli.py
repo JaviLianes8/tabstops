@@ -5,10 +5,11 @@ from __future__ import annotations
 import argparse
 import codecs
 import contextlib
-import os
+import io
 import sys
 from collections.abc import Sequence
-from typing import BinaryIO, TypeAlias
+from pathlib import Path
+from typing import BinaryIO, NoReturn, TypeAlias
 
 from ._expand import Expander
 from ._stops import TabStops
@@ -38,10 +39,15 @@ _COMMON: Flags = [
 ]
 
 
+class _Parser(argparse.ArgumentParser):
+    def error(self, message: str) -> NoReturn:
+        super().error("invalid command arguments; use --help")
+
+
 def _parser() -> argparse.ArgumentParser:
     from . import __version__
 
-    parser = argparse.ArgumentParser(
+    parser = _Parser(
         prog="tabstops", description="Convert tabs to spaces and back, like expand and unexpand."
     )
     version = f"tabstops {__version__} (Unicode {UNICODE_VERSION})"
@@ -101,7 +107,8 @@ def _run(files: list[str], engine: Engine, out: BinaryIO) -> int:
             source = open(name, "rb")  # noqa: SIM115
         except OSError as error:
             out.flush()
-            print(f"tabstops: {name}: {error.strerror or error}", file=sys.stderr)
+            label = ascii(Path(name).name[:40])
+            print(f"tabstops: {label}: cannot open input (errno {error.errno})", file=sys.stderr)
             status = 1
             continue
         with source:
@@ -119,12 +126,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         engine = _engine(args)
     except ValueError as error:
-        parser.error(str(error))
+        parser.exit(2, f"tabstops: {error}\n")
     try:
         return _run(args.files, engine, sys.stdout.buffer)
     except BrokenPipeError:
-        # The reader went away (as with `| head`): stop quietly, and point stdout at the
-        # null device so the interpreter does not complain while flushing it at exit.
+        # Discard the broken wrapper so shutdown does not retry its buffered output.
         with contextlib.suppress(OSError, ValueError):
-            os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+            sys.stdout.close()
+        sys.stdout = io.StringIO()
+        return 1
+    except OSError:
+        print("tabstops: input/output operation failed", file=sys.stderr)
         return 1

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tabstops"
-version = "0.2.0"
+version = "1.0.0"
 description = "Expand and unexpand tabs like str.expandtabs and the POSIX tools, with tab stop lists and display columns"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -23,7 +23,7 @@ keywords = [
     "posix",
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Environment :: Console",
     "Operating System :: OS Independent",
@@ -41,11 +41,12 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["ruff", "mypy", "pytest", "build", "twine"]
+dev = ["ruff", "mypy", "pytest", "pytest-timeout", "build", "twine"]
 
 [project.urls]
 Homepage = "https://lianes8studio.com"
 Repository = "https://github.com/JaviLianes8/tabstops"
+Source = "https://github.com/JaviLianes8/tabstops"
 Issues = "https://github.com/JaviLianes8/tabstops/issues"
 Changelog = "https://github.com/JaviLianes8/tabstops/blob/main/CHANGELOG.md"
 LinkedIn = "https://www.linkedin.com/in/jlianes/"
@@ -68,6 +69,7 @@ include = [
     "CHANGELOG.md",
     "CONTRIBUTING.md",
     "README.md",
+    "GUIDE.md",
     "LICENSE",
     "LICENSE-UNICODE",
 ]
@@ -87,6 +89,7 @@ strict = true
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-q -m 'not e2e'"
+timeout = 300
 markers = [
     "e2e: builds the wheel and installs it into a fresh venv (needs network); run with -m e2e",
 ]

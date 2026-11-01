@@ -23,6 +23,9 @@ class TabStops:
     With listed stops, a positive ``every`` keeps going after the last one: at every
     multiple of ``every``, or with ``relative`` at the last listed stop plus every multiple
     of ``every`` (the GNU ``/N`` and ``+N`` forms).
+
+    >>> TabStops(4).next_stop(4)
+    8
     """
 
     every: int = 8
@@ -33,7 +36,7 @@ class TabStops:
         object.__setattr__(self, "stops", tuple(self.stops))
         for value in (self.every, *self.stops):
             if not isinstance(value, int) or isinstance(value, bool):
-                raise TypeError(f"tab stops must be ints, got {value!r}")
+                raise TypeError("tab stops must be ints")
         if not isinstance(self.relative, bool):
             raise TypeError("relative must be a bool")
         if self.every < 0 or any(stop <= 0 for stop in self.stops):
@@ -54,9 +57,12 @@ class TabStops:
         Items are separated by commas or blanks. A single number is an interval. Only the
         last item may carry ``/`` or ``+``. Zero, an empty list and descending stops are
         rejected with ``ValueError``.
+
+        >>> str(TabStops.parse("2,4,/8"))
+        '2,4,/8'
         """
         if not isinstance(spec, str):
-            raise TypeError(f"expected a str, got {type(spec).__name__}")
+            raise TypeError("expected a str")
         items = [item for item in _SEPARATORS.split(spec) if item]
         if not items:
             raise ValueError("empty tab stop list")
@@ -65,11 +71,14 @@ class TabStops:
         for index, item in enumerate(items):
             match = _ITEM.fullmatch(item)
             if match is None:
-                raise ValueError(f"invalid tab stop {item!r}")
+                raise ValueError("invalid tab stop: expected ASCII digits and an optional tail")
             if match.group(1) and index != len(items) - 1:
                 raise ValueError(f"{match.group(1)!r} is only allowed on the last tab stop")
             tail = match.group(1)
-            values.append(int(match.group(2)))
+            try:
+                values.append(int(match.group(2)))
+            except ValueError:
+                raise ValueError("tab stop exceeds the integer conversion limit") from None
         if 0 in values:
             raise ValueError("tab stops must be positive")
         if len(values) == 1:
@@ -79,7 +88,15 @@ class TabStops:
         return cls(0, tuple(values))
 
     def next_stop(self, column: int) -> int | None:
-        """Return the first stop after ``column``, or ``None`` past the last listed stop."""
+        """Return the first stop strictly after a nonnegative integer column.
+
+        >>> TabStops.parse("2,4").next_stop(4) is None
+        True
+        """
+        if not isinstance(column, int) or isinstance(column, bool):
+            raise TypeError("column must be an int")
+        if column < 0:
+            raise ValueError("column must not be negative")
         index = bisect_right(self.stops, column)
         if index < len(self.stops):
             return self.stops[index]

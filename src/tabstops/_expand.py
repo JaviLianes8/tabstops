@@ -15,6 +15,10 @@ class Expander:
 
     Arguments are those of :func:`expand`. ``feed`` returns the output for each piece and
     ``flush`` ends the text and starts over at column zero.
+
+    >>> engine = Expander(4)
+    >>> engine.feed("a") + engine.feed(chr(9) + "b")
+    'a   b'
     """
 
     def __init__(
@@ -36,9 +40,13 @@ class Expander:
         self._leading = True
 
     def feed(self, text: str) -> str:
-        """Expand the next piece of text and return the result."""
+        """Expand the next piece of text; wrong types raise TypeError.
+
+        >>> Expander(4).feed("a" + chr(9) + "b")
+        'a   b'
+        """
         if not isinstance(text, str):
-            raise TypeError(f"expected a str, got {type(text).__name__}")
+            raise TypeError("expected a str")
         out: list[str] = []
         column = self._column
         leading = self._leading
@@ -68,7 +76,11 @@ class Expander:
         return "".join(out)
 
     def flush(self) -> str:
-        """End the text: nothing is held back, so this only resets the column."""
+        """End the text and reset the column and leading-blank state.
+
+        >>> Expander().flush()
+        ''
+        """
         self._column = 0
         self._leading = True
         return ""
@@ -102,13 +114,18 @@ def expand(
     (see :func:`char_width`). ``posix`` follows the ``expand`` utility instead: only a
     newline restarts the column and a backspace moves it back one place (columns still
     count characters, where the utility counts bytes).
+
+    Negative sizes raise ValueError; wrong text or tab types raise TypeError.
+
+    >>> expand("a" + chr(9) + "b", 4)
+    'a   b'
     """
     engine = Expander(
         tabs, initial=initial, width=width, ambiguous_wide=ambiguous_wide, posix=posix
     )
     if isinstance(tabs, int) and not (initial or posix) and width == "chars":
         if not isinstance(text, str):
-            raise TypeError(f"expected a str, got {type(text).__name__}")
+            raise TypeError("expected a str")
         # Same rules as the engine, done in C.
         return text.expandtabs(tabs)
     return engine.feed(text) + engine.flush()
@@ -126,6 +143,9 @@ def expand_stream(
     """Expand an iterable of text pieces (lines, file blocks) lazily, one output per piece.
 
     The arguments are checked when this is called, not when the first piece is read.
+
+    >>> "".join(expand_stream(["a", chr(9) + "b"], 4))
+    'a   b'
     """
     engine = Expander(
         tabs, initial=initial, width=width, ambiguous_wide=ambiguous_wide, posix=posix

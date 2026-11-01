@@ -6,6 +6,30 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-01
+
+### Stable
+
+- The ten public names, signatures and defaults from 0.2.0: tab stop models, expansion,
+  compression, streaming engines and iterators, and Unicode 18.0.0 widths.
+- Runnable public docstrings, a complete GUIDE, strict typing, installed-wheel and
+  PyPI upgrade checks, live GNU and Unicode comparisons, and mutation contracts.
+
+### Changed
+
+- `TabStops.next_stop` requires a nonnegative integer column: boolean/non-integer
+  arguments raise `TypeError`, negative arguments raise `ValueError`.
+- Validation errors no longer echo invalid values or dynamic type names. Overlong
+  decimal stops have a short `ValueError` message instead of the interpreter's wording.
+- CLI unknown-argument errors use a generic message. File errors identify a bounded,
+  escaped basename and errno instead of the full path and operating-system message.
+  Read/write errors exit 1 with a short diagnostic instead of a traceback.
+- Remove the accidental top-level `annotations` attribute (never in `__all__`).
+- Pending spaces in `Unexpander` are counted rather than repeatedly concatenated,
+  avoiding quadratic work for distant stops. Valid conversion outputs are unchanged.
+- Closed output pipes are silenced without opening a device file.
+
+
 ## [0.2.0]
 
 ### Added

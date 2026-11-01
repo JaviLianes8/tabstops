@@ -11,7 +11,9 @@ BLOCK = re.compile(r"```python\n(.*?)```", re.S)
 
 
 def test_documented_results_are_true() -> None:
-    text = (ROOT / "README.md").read_text(encoding="utf-8")
+    text = "\n".join(
+        (ROOT / name).read_text(encoding="utf-8") for name in ("README.md", "GUIDE.md")
+    )
     namespace: dict[str, object] = {}
     checked = 0
     for block in BLOCK.findall(text):

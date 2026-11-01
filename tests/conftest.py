@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
@@ -13,10 +14,19 @@ from typing import Any
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-UCD = ROOT / "data" / "ucd"
+UCD = Path(os.environ.get("TABSTOPS_UCD", ROOT / "data" / "ucd"))
 MANIFEST: dict[str, dict[str, Any]] = json.loads(
-    (UCD / "MANIFEST.json").read_text(encoding="utf-8")
+    (ROOT / "data" / "ucd" / "MANIFEST.json").read_text(encoding="utf-8")
 )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def verify_ucd() -> None:
+    for name, entry in MANIFEST.items():
+        path = UCD / name
+        if path.is_file():
+            assert hashlib.sha256(path.read_bytes()).hexdigest() == entry["sha256"]
+
 
 needs_ucd = pytest.mark.skipif(
     not all((UCD / name).is_file() for name in MANIFEST),
@@ -33,8 +43,9 @@ def gnu(tool: str) -> tuple[str, ...] | None:
     """
     prefixes: list[tuple[str, ...]] = []
     if os.name == "nt":
-        if shutil.which("wsl"):
-            prefixes += [("wsl", "-e", f"gnu{tool}"), ("wsl", "-e", tool)]
+        candidate = Path("C:/Program Files/Git/usr/bin") / f"{tool}.exe"
+        if candidate.is_file():
+            prefixes.append((str(candidate),))
     else:
         prefixes += [(name,) for name in (f"gnu{tool}", tool) if shutil.which(name)]
     for prefix in prefixes:
