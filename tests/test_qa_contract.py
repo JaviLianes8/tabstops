@@ -34,6 +34,22 @@ def test_large_integer_expansion_rejects_non_text() -> None:
         expand(None, 2**100)  # type: ignore[arg-type]
 
 
+@pytest.mark.parametrize("tabs", [2**31, 2**63, 2**100])
+@pytest.mark.parametrize("text", ["", "x"])
+def test_large_integer_expansion_rejects_ambiguous_wide_without_display(
+    tabs: int, text: str
+) -> None:
+    with pytest.raises(ValueError):
+        expand(text, tabs, ambiguous_wide=True)
+
+
+@pytest.mark.parametrize("tabs", [2**31, 2**63, 2**100])
+@pytest.mark.parametrize("text", ["", "x"])
+def test_large_integer_expansion_rejects_invalid_width(tabs: int, text: str) -> None:
+    with pytest.raises(ValueError):
+        expand(text, tabs, width="cells")  # type: ignore[arg-type]
+
+
 @pytest.mark.parametrize("prefix", ["", "\t", "\tx", "\t\b"])
 def test_large_interval_blank_work_is_bounded(monkeypatch: pytest.MonkeyPatch, prefix: str) -> None:
     calls = 0
