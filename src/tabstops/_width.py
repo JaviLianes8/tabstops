@@ -36,9 +36,12 @@ def char_width(char: str, *, ambiguous_wide: bool = False) -> int:
     marks, default ignorable characters, control characters and conjoining Hangul vowels
     and trailing consonants take none. East Asian Ambiguous characters take one column, or
     two with ``ambiguous_wide``. Everything else takes one.
+
+    >>> char_width(chr(0x4e2d))
+    2
     """
     if not isinstance(char, str):
-        raise TypeError(f"expected a str, got {type(char).__name__}")
+        raise TypeError("expected a str")
     if len(char) != 1:
         raise ValueError(f"expected a single character, got {len(char)}")
     if " " <= char < "\x7f":
@@ -54,9 +57,12 @@ def display_width(text: str, *, ambiguous_wide: bool = False) -> int:
 
     Tabs are control characters here and count as zero: expand them first with
     ``expand(text, width="display")`` to measure a line that holds tabs.
+
+    >>> display_width("e" + chr(0x301) + chr(0x4e2d))
+    3
     """
     if not isinstance(text, str):
-        raise TypeError(f"expected a str, got {type(text).__name__}")
+        raise TypeError("expected a str")
     return sum(char_width(char, ambiguous_wide=ambiguous_wide) for char in text)
 
 
@@ -72,4 +78,4 @@ def width_function(width: Width, ambiguous_wide: bool) -> Callable[[str], int]:
         return _one
     if width == "display":
         return lambda char: char_width(char, ambiguous_wide=ambiguous_wide)
-    raise ValueError(f"width must be 'chars' or 'display', got {width!r}")
+    raise ValueError("width must be 'chars' or 'display'")

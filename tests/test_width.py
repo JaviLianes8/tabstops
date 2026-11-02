@@ -116,6 +116,10 @@ def test_every_code_point_has_the_width_the_data_gives() -> None:
 
 
 @needs_ucd
+@pytest.mark.skipif(
+    not (ROOT / "src" / "tabstops" / "_width_data.py").is_file(),
+    reason="table regeneration needs the source tree",
+)
 def test_the_generated_table_is_current() -> None:
     script = ROOT / "scripts" / "gen_width_table.py"
     done = subprocess.run([sys.executable, str(script), "--check"], capture_output=True)

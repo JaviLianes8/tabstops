@@ -5,10 +5,11 @@ from __future__ import annotations
 import argparse
 import codecs
 import contextlib
-import os
+import io
 import sys
 from collections.abc import Sequence
-from typing import BinaryIO, TypeAlias
+from pathlib import Path
+from typing import BinaryIO, NoReturn, TypeAlias
 
 from ._expand import Expander
 from ._stops import TabStops
@@ -38,10 +39,15 @@ _COMMON: Flags = [
 ]
 
 
+class _Parser(argparse.ArgumentParser):
+    def error(self, message: str) -> NoReturn:
+        super().error("invalid command arguments; use --help")
+
+
 def _parser() -> argparse.ArgumentParser:
     from . import __version__
 
-    parser = argparse.ArgumentParser(
+    parser = _Parser(
         prog="tabstops", description="Convert tabs to spaces and back, like expand and unexpand."
     )
     version = f"tabstops {__version__} (Unicode {UNICODE_VERSION})"
@@ -101,7 +107,8 @@ def _run(files: list[str], engine: Engine, out: BinaryIO) -> int:
             source = open(name, "rb")  # noqa: SIM115
         except OSError as error:
             out.flush()
-            print(f"tabstops: {name}: {error.strerror or error}", file=sys.stderr)
+            label = ascii(Path(name).name[:40])
+            print(f"tabstops: {label}: cannot open input (errno {error.errno})", file=sys.stderr)
             status = 1
             continue
         with source:
@@ -111,20 +118,39 @@ def _run(files: list[str], engine: Engine, out: BinaryIO) -> int:
     return status
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    """Run the tool; return 0 on success, 1 if a file could not be read or the output
-    was closed early, 2 on bad usage."""
+def _execute(argv: Sequence[str] | None) -> int:
     parser = _parser()
     args = parser.parse_args(argv)
     try:
         engine = _engine(args)
     except ValueError as error:
-        parser.error(str(error))
+        parser.exit(2, f"tabstops: {error}\n")
+    return _run(args.files, engine, sys.stdout.buffer)
+
+
+def _discard_stdout() -> None:
+    # Discard the broken wrapper so shutdown does not retry its buffered output.
+    with contextlib.suppress(OSError, ValueError):
+        sys.stdout.close()
+    sys.stdout = io.StringIO()
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """Run the tool; return 0 on success, 1 on I/O failure, 2 on bad usage."""
     try:
-        return _run(args.files, engine, sys.stdout.buffer)
+        try:
+            return _execute(argv)
+        except SystemExit:
+            # argparse's help/version paths must flush before declaring success.
+            sys.stdout.flush()
+            raise
     except BrokenPipeError:
-        # The reader went away (as with `| head`): stop quietly, and point stdout at the
-        # null device so the interpreter does not complain while flushing it at exit.
-        with contextlib.suppress(OSError, ValueError):
-            os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        _discard_stdout()
+        return 1
+    except OSError:
+        try:
+            sys.stdout.flush()
+        except OSError:
+            _discard_stdout()
+        print("tabstops: input/output operation failed", file=sys.stderr)
         return 1

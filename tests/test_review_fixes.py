@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -125,10 +126,11 @@ def test_the_table_check_rejects_a_changed_data_file(tmp_path: Path) -> None:
     manifest = (ROOT / "data" / "ucd" / "MANIFEST.json").read_text(encoding="utf-8")
     (data / "MANIFEST.json").write_text(manifest, encoding="utf-8")
     run = [sys.executable, "-B", str(copy), "--check"]
-    skipped = subprocess.run(run, capture_output=True, text=True)
+    env = {k: v for k, v in os.environ.items() if k != "TABSTOPS_UCD"}
+    skipped = subprocess.run(run, capture_output=True, text=True, env=env)
     assert (skipped.returncode, skipped.stdout.split(":")[0]) == (0, "SKIPPED")
     for name in ("DerivedEastAsianWidth.txt", "DerivedGeneralCategory.txt"):
         (data / name).write_text("# not the pinned file\n", encoding="utf-8")
-    changed = subprocess.run(run, capture_output=True, text=True)
+    changed = subprocess.run(run, capture_output=True, text=True, env=env)
     assert changed.returncode == 1
     assert "differs from the sha256" in changed.stdout

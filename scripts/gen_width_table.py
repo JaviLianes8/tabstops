@@ -16,12 +16,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-UCD_DIR = ROOT / "data" / "ucd"
+UCD_DIR = Path(os.environ.get("TABSTOPS_UCD", ROOT / "data" / "ucd"))
 TARGET = ROOT / "src" / "tabstops" / "_width_data.py"
 VERSION = "18.0.0"
 SIZE = 0x110000
@@ -106,7 +107,7 @@ def render() -> str:
 
 def _verify() -> list[str]:
     """Return the problems with the local files: missing, or not the pinned bytes."""
-    manifest = json.loads((UCD_DIR / "MANIFEST.json").read_text(encoding="utf-8"))
+    manifest = json.loads((ROOT / "data" / "ucd" / "MANIFEST.json").read_text(encoding="utf-8"))
     problems = []
     for name, entry in manifest.items():
         path = UCD_DIR / name
