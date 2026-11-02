@@ -1,6 +1,6 @@
 # tabstops 1.0.0 certification report
 
-Preparation for 1.0.0, dated 2026-11-01. Base: `0b4ad09` (0.2.0).
+Certification finalized 2026-11-02. Base: `0b4ad09` (0.2.0).
 PyPI's JSON endpoint and an actual installation confirm that 0.2.0 is published.
 
 Progress:
@@ -12,8 +12,8 @@ Progress:
 - [x] Built wheel and sdist; real CLI and in-place upgrade from PyPI 0.2.0
 - [x] Available Python matrix
 - [x] Mutation round and final four gates
-- [ ] Independent reviewer (item 16, separate stage)
-- [ ] Five independent QA lenses (item 19, separate stage)
+- [x] Independent reviewer: PASS, round 1
+- [x] Five independent QA lenses: all PASS
 - [x] PR #3 opened; guard CLEAN; merge and publishing remain separate stages
 
 ## API and compatibility
@@ -172,16 +172,65 @@ including upgrade, CLI failure paths and closed help/version output, passes sepa
 | 13 | PASS: version, stable classifier, license, URLs, no runtime dependencies |
 | 14 | PASS: inspected wheel/sdist, licenses included, no downloaded corpora |
 | 15 | PASS: all four gates exit 0 separately |
-| 16 | PENDING: independent reviewer is a separate stage |
-| 17 | READY: PR #3 and guard CLEAN; merge and publication pending |
+| 16 | PASS: independent reviewer, round 1; scorecard below |
+| 17 | PASS for release handoff: PR #3; merge and publication reserved |
 | 18 | PASS: 28 distinct mutations killed |
-| 19 | PENDING: all five independent QA lenses are a separate stage |
+| 19 | PASS: all five independent QA lenses; final verdicts below |
 
 ## Review status
 
-Round 1 findings from QA lenses a, c and e are addressed below. Their independent
-re-verification remains pending; no verdict from the earlier 0.2.0 review is carried
-over. Merge and publication have not been performed.
+All findings from QA lenses a, c and e are closed by their final PASS reports.
+The independent reviewer reports PASS with no findings. No verdict from the earlier
+0.2.0 review is carried over. Merge and publication have not been performed.
+
+## Final QA verdicts
+
+Report paths are relative to this repository checkout. Each reviewed revision is
+an ancestor of `7b38ddd510c96a09f773c76068dd602a6b178b85`.
+
+| Lens | Rounds | Final verdict | Report path | Commit |
+| --- | --- | --- | --- | --- |
+| a: API and docs | 2 | PASS | `../../scratch/tabstops-cert/lens-a-r2/REPORT.md` | `d624f5277e178e8fad857cc592abcfd80b480b3c` |
+| b: correctness and ground truth | 1 | PASS | `../../scratch/tabstops-cert/lens-b-r1/REPORT.md` | `7a8a4e73b903d30b3e7a1b75d8e726da4d31be65` |
+| c: robustness | 2 | PASS | `../../scratch/tabstops-cert/lens-c-r2/REPORT.md` | `d624f5277e178e8fad857cc592abcfd80b480b3c` |
+| d: packaging and real e2e | 1 | PASS | `../../scratch/tabstops-cert/lens-d-r1/REPORT.md` | `7a8a4e73b903d30b3e7a1b75d8e726da4d31be65` |
+| e: contract strength | 4 | PASS | `../../scratch/tabstops-cert/lens-e-r4/REPORT.md` | `7b38ddd510c96a09f773c76068dd602a6b178b85` |
+
+The reviewer reran ground-truth and packaging checks at the final reviewed revision,
+supplementing the earlier b/d results. Production code has not changed since the
+a/c PASS revision; subsequent fixes add contracts and update this report.
+
+## Independent review scorecard
+
+Round 1, 2026-11-02: PASS, no findings. Report:
+`../../scratch/tabstops-cert/review-r1/REPORT.md`.
+Reviewed commit: `7b38ddd510c96a09f773c76068dd602a6b178b85`.
+
+The table summarizes the review evidence. Item 17 passes the requested release
+handoff scope; the review explicitly records merge as pending. Neither this table
+nor the review claims that merge or publication has occurred.
+
+| Item | Final result | Review evidence |
+| --- | --- | --- |
+| 1. Stable API | PASS | Signatures/defaults retained; documented changes; 18,000 upgrade results agree |
+| 2. Public surface | PASS | Exact ten exports; no accidental attributes or private imports in examples |
+| 3. Runnable documentation | PASS | 19 doctest examples and README/GUIDE results execute |
+| 4. Strict typing | PASS | Strict source/test checks; no public Any; py.typed in both artifacts |
+| 5. Errors | PASS | Documented error families, bounded diagnostics and CLI failure checks |
+| 6. Contracts | PASS | 384 regular tests and separate installed-wheel e2e pass without skips |
+| 7. Ground truth | PASS | Fresh pinned Unicode downloads, exhaustive widths, CPython and live GNU checks |
+| 8. Real e2e | PASS | Isolated wheel/sdist installs, external consumers, CLI and PyPI 0.2.0 upgrade |
+| 9. Robustness | PASS | Seeded fuzz, properties, hostile inputs and scaling checks |
+| 10. Python matrix | PASS | Available CPython 3.14.6 passes; unavailable interpreters disclosed above |
+| 11. README | PASS | Strict artifact checks, rendered Markdown, absolute links and badge |
+| 12. CHANGELOG | PASS | Dated 1.0.0 section covers stability and intentional behavior changes |
+| 13. Metadata | PASS | 1.0.0, stable classifier, Python support, MIT, URLs and no runtime dependencies |
+| 14. Contents | PASS | Wheel/sdist inspected; licenses and typing marker included; no scratch or corpora |
+| 15. Gates | PASS | Four required commands each exit 0 independently |
+| 16. Review | PASS | Fresh review at the pinned revision; no findings |
+| 17. Release handoff | PASS | Open PR #3 from release/1.0.0 to main; merge/publication reserved |
+| 18. Mutations | PASS | Existing 28-row table verified; 12 independent mutations killed |
+| 19. Five QA lenses | PASS | All five reports and supporting evidence verified; all findings closed |
 
 ## QA lenses, round 1 fixes
 
@@ -231,7 +280,7 @@ also passed. The installed-wheel build, PyPI 0.2.0 upgrade and CLI checks passed
 separately (1 passed, 370 deselected). GNU and pinned Unicode comparisons ran in
 the full suite. All pytest invocations used a 300-second per-test timeout.
 
-Local evidence is under `C:/lianes8-build/codex-pylib/scratch/tabstops-cert/fix-r1/`:
+Local evidence is under `../../scratch/tabstops-cert/fix-r1/`:
 `before.log`, `scaling.json`, and `M24.log`, `M26.log`, `M55.log`. Test basetemps,
 build temporary files and the mutation copy also remain under that scratch directory.
 
@@ -255,9 +304,9 @@ input unchanged when `tabs` is an integer greater than `2**31 - 1`. Both new con
 fail with `DID NOT RAISE` (2 failed, 27 deselected). This is a behavioral kill, not an
 import failure or timeout. The scratch source was restored and compared byte for
 byte with the repository source. Evidence: `fix-r2/N03.log` and `fix-r2/check_n03.py`
-under `C:/lianes8-build/codex-pylib/scratch/tabstops-cert/`.
+under `../../scratch/tabstops-cert/`.
 
-Independent re-verification of E-04 remains pending. Lens e's round 2 report confirms
+Lens e's round 3 report confirms E-04 is fixed. Its round 2 report confirms
 that E-01, E-02 and E-03 are fixed.
 
 Verification on CPython 3.14.6: `ruff format --check .`, `ruff check .`,
@@ -273,7 +322,7 @@ Date: 2026-11-01. Reviewed base: `0d37f46ba2e738dcabc60e47eaf0c2340955457e`.
 Fix commit: `d5c6c1c436b1afa445c6458d3669227722df5a5c`
 (`cover large interval expansion option validation`).
 The supplied finding E-05 is addressed; none are disputed. Lens e's round 3 report
-confirms E-04 is fixed. Independent re-verification of E-05 remains pending.
+confirms E-04 is fixed. Its round 4 PASS report confirms E-05 is fixed.
 
 | Finding | Change and contract |
 | --- | --- |
@@ -303,12 +352,12 @@ per-test timeout. TEMP, TMP, TMPDIR, pip cache and pytest basetemps were under
 the round's scratch directory; all execution was local.
 
 Evidence: `check_n10.py`, `baseline.log`, `N10.log`, and `restored.log` under
-`C:/lianes8-build/codex-pylib/scratch/tabstops-cert/fix-r3/`.
+`../../scratch/tabstops-cert/fix-r3/`.
 
 ## Handoff
 
 [PR #3](https://github.com/JaviLianes8/tabstops/pull/3) targets `main` from
 `release/1.0.0`, titled `tabstops 1.0.0`. The required guard prints `CLEAN: tabstops #3`.
 The preparation implementation was `b7deab4`; round 1 fixes and their tested commit
-are recorded above. Preparation items 1 to 15 and 18 are complete. Independent
-review, QA re-verification, merge and publication remain pending.
+are recorded above. All certification checks, independent review and QA
+re-verification are complete. Merge and publication remain separate steps.
